@@ -1,30 +1,15 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Box,
-  Container,
-  Typography,
-  Button,
-  Grid,
-  Card,
-  CardMedia,
-  CardContent,
-} from "@mui/material";
-import CouponIssueModal from "../components/common/CouponIssueModal";
+import { Box, Container, Typography, Button, Grid } from "@mui/material";
 import SummerCouponModal from "../components/common/SummerCouponModal";
+import ProductCard from "../features/product/components/ProductCard";
 
 const MainPage = () => {
   const navigate = useNavigate();
 
-  // 실제 이미지 파일들
-  const productImages = [
-    "/images/products/girl-mb-data.jpg",
-    "/images/products/mens-mb-data.jpg",
-  ];
-
-  // 랜덤으로 이미지 선택하는 함수
-  const getRandomImage = () => {
-    return productImages[Math.floor(Math.random() * productImages.length)];
+  // 이미지를 girl-mb-data.jpg로 고정
+  const getFixedImage = () => {
+    return "/images/products/girl-mb-data.jpg";
   };
 
   const heroProducts = [
@@ -32,7 +17,7 @@ const MainPage = () => {
       id: 1,
       name: "NEW ARRIVALS",
       description: "새로운 시즌의 트렌디한 아이템들을 만나보세요",
-      image: getRandomImage(),
+      image: getFixedImage(),
       cta: "바로가기",
       link: "/category",
     },
@@ -47,8 +32,11 @@ const MainPage = () => {
   return (
     <Box sx={{ backgroundColor: "white", minHeight: "100vh" }}>
       {/* SummerCouponModal 오버레이 모달 */}
-      <SummerCouponModal open={modalOpen} onClose={() => setModalOpen(false)} />
-      {/* Coupon Modal/Trigger 제거됨 */}
+      <SummerCouponModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+      />
+
       {/* Hero Section */}
       <Box
         sx={{
@@ -58,9 +46,9 @@ const MainPage = () => {
           borderColor: "divider",
         }}
       >
-        <Container maxWidth="xl">
+        <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
           <Grid container spacing={6} alignItems="center">
-            <Grid item xs={12} md={6}>
+            <Grid sx={{ flex: { xs: "1 1 100%", md: "1 1 50%" } }}>
               <Typography
                 variant="h2"
                 sx={{
@@ -70,7 +58,7 @@ const MainPage = () => {
                   fontSize: { xs: "2.5rem", md: "3.5rem" },
                 }}
               >
-                TBH SHOP
+                THE SHOP
               </Typography>
               <Typography
                 variant="h5"
@@ -87,7 +75,7 @@ const MainPage = () => {
               <Button
                 variant="contained"
                 size="large"
-                onClick={() => navigate("/category")}
+                onClick={() => navigate("/products")}
                 sx={{
                   backgroundColor: "neutral.900",
                   color: "white",
@@ -103,10 +91,10 @@ const MainPage = () => {
                 쇼핑 시작하기
               </Button>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid sx={{ flex: { xs: "1 1 100%", md: "1 1 50%" } }}>
               <Box sx={{ textAlign: "center" }}>
                 <img
-                  src={getRandomImage()}
+                  src={getFixedImage()}
                   alt="TBH Collection"
                   style={{
                     width: "100%",
@@ -121,7 +109,7 @@ const MainPage = () => {
       </Box>
 
       {/* Quick Actions */}
-      <Container maxWidth="xl" sx={{ py: 8 }}>
+      <Container maxWidth="lg" sx={{ py: 8, px: { xs: 2, sm: 3, md: 4 } }}>
         <Typography
           variant="h4"
           sx={{
@@ -135,56 +123,17 @@ const MainPage = () => {
         </Typography>
         <Grid container spacing={4}>
           {heroProducts.map((product) => (
-            <Grid item xs={12} sm={6} md={4} key={product.id}>
-              <Card
-                sx={{
-                  height: "100%",
-                  backgroundColor: "white",
-                  border: "1px solid",
-                  borderColor: "divider",
-                  transition: "all 0.2s ease-in-out",
-                  cursor: "pointer",
-                  "&:hover": {
-                    borderColor: "neutral.400",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-                  },
-                }}
-                onClick={() => navigate(product.link)}
-              >
-                <CardMedia
-                  component="img"
-                  height="200"
-                  image={product.image}
-                  alt={product.name}
-                  sx={{ objectFit: "cover" }}
-                />
-                <CardContent sx={{ p: 3, textAlign: "center" }}>
-                  <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
-                    {product.name}
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ mb: 2 }}
-                  >
-                    {product.description}
-                  </Typography>
-                  <Button
-                    variant="outlined"
-                    onClick={() => navigate(product.link)}
-                    sx={{
-                      borderColor: "neutral.300",
-                      color: "neutral.700",
-                      "&:hover": {
-                        borderColor: "neutral.600",
-                        backgroundColor: "neutral.50",
-                      },
-                    }}
-                  >
-                    {product.cta}
-                  </Button>
-                </CardContent>
-              </Card>
+            <Grid
+              key={product.id}
+              sx={{
+                flex: {
+                  xs: "1 1 100%",
+                  sm: "1 1 calc(50% - 16px)",
+                  md: "1 1 calc(33.333% - 16px)",
+                },
+              }}
+            >
+              <ProductCard product={product} />
             </Grid>
           ))}
         </Grid>

@@ -1,158 +1,165 @@
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Sun, Timer, ArrowRight, Sparkles } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { X, Gift, Clock, Star } from "lucide-react";
 
-/**
- * 여름 할인 쿠폰 — 선착순 팝업 (디자인 전용)
- * - React 18 + TailwindCSS
- * - 로직/데이터 연동 없이 UI만 제공
- *
- * 사용법:
- * <SummerCouponModal open={open} onClose={() => setOpen(false)} />
- */
-export default function SummerCouponModal({ open, onClose }) {
+const SummerCouponModal = ({ isOpen, onClose }) => {
   const dialogRef = useRef(null);
 
-  // 간단한 포커스 트랩(디자인 데모용)
   useEffect(() => {
-    if (!open) return;
-    const el = dialogRef.current;
-    const prev = document.activeElement;
-    el?.focus();
-    const onKey = (e) => {
+    if (isOpen) {
+      // 스크롤을 막지 않음 - 메인페이지 스크롤 허용
+      // document.body.style.overflow = "hidden"; // 제거
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    } else {
+      // document.body.style.overflow = "unset"; // 제거
+    }
+
+    return () => {
+      // document.body.style.overflow = "unset"; // 제거
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    const handleEscape = (e) => {
       if (e.key === "Escape") onClose();
     };
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      prev?.focus?.();
-    };
-  }, [open, onClose]);
 
-  // Portal로 body에 렌더링
+    if (isOpen) {
+      document.addEventListener("keydown", handleEscape);
+      const el = dialogRef.current;
+      setTimeout(() => el?.focus(), 100);
+    }
+
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
   return createPortal(
     <AnimatePresence>
-      {open && (
+      <motion.div
+        style={{
+          position: "fixed",
+          top: 100,
+          left: 10,
+          right: 0,
+          bottom: 0,
+        }}
+        className="z-[99999] flex items-start justify-center bg-black/50 p-8"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+      >
         <motion.div
-          className="flex fixed inset-0 z-50 justify-center items-center"
-          aria-labelledby="summer-coupon-title"
-          aria-describedby="summer-coupon-desc"
-          role="dialog"
-          aria-modal="true"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+          ref={dialogRef}
+          tabIndex={-1}
+          className="overflow-hidden relative mx-4 w-full rounded-3xl shadow-2xl focus:outline-none"
+          style={{
+            maxWidth: "33.333vw",
+            minWidth: "380px",
+            background:
+              "linear-gradient(135deg, #ffffff 0%, #f8fbff 50%, #f0f8ff 100%)",
+            border: "2px solid #87ceeb",
+            boxShadow:
+              "0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(135, 206, 235, 0.1)",
+          }}
+          initial={{ y: -50, scale: 0.95, opacity: 0 }}
+          animate={{ y: 0, scale: 1, opacity: 1 }}
+          exit={{ y: -50, scale: 0.95, opacity: 0 }}
+          transition={{ type: "spring", stiffness: 220, damping: 22 }}
+          onClick={(e) => e.stopPropagation()}
         >
-          {/* Backdrop */}
-          <motion.div
-            className="absolute inset-0 backdrop-blur-sm bg-black/50"
-            onClick={onClose}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          />
-          <motion.div
-            ref={dialogRef}
-            tabIndex={-1}
-            className="overflow-hidden relative mx-4 w-full max-w-md rounded-2xl shadow-2xl focus:outline-none"
-            initial={{ y: 24, scale: 0.98, opacity: 0 }}
-            animate={{ y: 0, scale: 1, opacity: 1 }}
-            exit={{ y: 24, scale: 0.98, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 220, damping: 22 }}
-          >
-            <div className="relative w-full h-40 bg-gradient-to-br from-teal-400 via-cyan-500 to-blue-600">
-              <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_top_right,white,transparent_55%)]" />
-              <div className="absolute -top-8 -left-8 w-40 h-40 rounded-full blur-2xl bg-white/15" />
-              <div className="absolute -right-10 -bottom-10 w-44 h-44 rounded-full blur-2xl bg-white/10" />
+          {/* 헤더 */}
+          <div className="relative p-8 pb-6 pl-30">
+            <button
+              onClick={onClose}
+              className="absolute top-6 right-6 p-2 rounded-full transition-colors hover:bg-sky-50"
+            >
+              <X size={20} className="text-sky-600" />
+            </button>
 
-              <div className="flex absolute inset-0 gap-3 items-center p-6 text-white drop-shadow">
-                <div className="grid place-items-center w-12 h-12 rounded-xl bg-white/20">
-                  <Sun className="w-7 h-7" />
+            {/* 선착순 배지 */}
+            <div className="inline-flex gap-2 items-center px-4 py-2 mb-4 bg-gradient-to-r from-sky-100 to-blue-100 rounded-full border border-sky-200">
+              <Clock size={16} className="text-sky-600" />
+              <span className="text-sm font-semibold text-sky-700">
+                선착순 한정
+              </span>
+            </div>
+
+            {/* 메인 타이틀 */}
+            <h2 className="mb-3 text-3xl font-bold leading-tight text-gray-800">
+              여름 시즌
+              <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-blue-600">
+                특별 쿠폰
+              </span>
+            </h2>
+
+            <p className="text-lg leading-relaxed text-gray-600">
+              시원한 여름을 위한 특별한 혜택을 놓치지 마세요!
+            </p>
+          </div>
+
+          {/* 쿠폰 내용 */}
+          <div className="px-12 pb-8">
+            {/* 쿠폰 혜택 */}
+            <div className="p-6 mb-6 bg-white rounded-2xl border border-sky-100 shadow-sm">
+              <div className="flex gap-3 items-center mb-4">
+                <div className="flex justify-center items-center w-12 h-12 bg-gradient-to-br from-sky-400 to-blue-500 rounded-full">
+                  <Gift size={24} className="text-white" />
                 </div>
                 <div>
-                  <div className="inline-flex gap-2 items-center px-3 py-1 text-xs font-medium tracking-wide rounded-full bg-black/20">
-                    <Sparkles className="w-4 h-4" />
-                    선착순 혜택 진행중
-                  </div>
-                  <h2
-                    id="summer-coupon-title"
-                    className="mt-2 text-2xl font-extrabold leading-tight"
-                  >
-                    여름 할인 쿠폰
-                  </h2>
-                  <p className="opacity-90 text-sm/relaxed">
-                    지금 받으면 즉시 할인 적용! 한정 수량 소진 시 종료
-                  </p>
+                  <h3 className="text-xl font-bold text-gray-800">
+                    최대 50% 할인
+                  </h3>
+                  <p className="text-gray-600">전체 상품 대상</p>
                 </div>
               </div>
-              <svg
-                className="absolute -bottom-[1px] left-0 w-full"
-                viewBox="0 0 1440 120"
-                preserveAspectRatio="none"
-                aria-hidden
-              >
-                <path
-                  fill="#fff"
-                  d="M0,64L48,80C96,96,192,128,288,117.3C384,107,480,53,576,42.7C672,32,768,64,864,80C960,96,1056,96,1152,85.3C1248,75,1344,53,1392,42.7L1440,32L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
-                />
-              </svg>
+
+              <div className="space-y-3">
+                <div className="flex gap-3 items-center">
+                  <Star size={16} className="text-yellow-400 fill-current" />
+                  <span className="text-gray-700">신상품 30% 할인</span>
+                </div>
+                <div className="flex gap-3 items-center">
+                  <Star size={16} className="text-yellow-400 fill-current" />
+                  <span className="text-gray-700">무료 배송</span>
+                </div>
+                <div className="flex gap-3 items-center">
+                  <Star size={16} className="text-yellow-400 fill-current" />
+                  <span className="text-gray-700">추가 할인 쿠폰</span>
+                </div>
+              </div>
             </div>
 
-            <div className="p-6 bg-white">
-              {/* Badge row */}
-              <div className="flex justify-between items-center mb-3">
-                <div className="inline-flex gap-2 items-center px-3 py-1 text-xs font-semibold text-cyan-700 bg-cyan-100 rounded-full">
-                  선착순!
-                </div>
-                <div className="inline-flex gap-2 items-center text-sm text-gray-600">
-                  <Timer className="w-4 h-4" />
-                  <span>마감 임박</span>
-                </div>
-              </div>
-
-              <div id="summer-coupon-desc" className="mb-4">
-                <div className="text-3xl font-extrabold tracking-tight text-gray-900">
-                  최대 ₩10,000 즉시 할인
-                </div>
-                <p className="mt-1 text-sm text-gray-600">
-                  여름 시즌 한정. 일부 카테고리 제외, 자세한 조건은 쿠폰함에서
-                  확인.
-                </p>
-              </div>
-
-              <div className="mb-5">
-                <div className="flex justify-between items-center text-xs text-gray-500">
-                  <span>남은 수량</span>
-                  <span>42 / 200</span>
-                </div>
-                <div className="overflow-hidden mt-1 w-full h-2 bg-gray-100 rounded-full">
-                  <div className="h-full w-[21%] rounded-full bg-gradient-to-r from-teal-400 to-blue-500" />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 mt-2">
-                <button className="inline-flex col-span-2 gap-2 justify-center items-center px-4 h-12 text-base font-semibold text-white bg-gradient-to-r from-teal-400 to-blue-500 rounded-xl shadow-lg transition hover:brightness-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-300">
-                  지금 발급
-                  <ArrowRight className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={onClose}
-                  className="inline-flex justify-center items-center px-4 h-11 text-sm font-medium text-gray-700 bg-white rounded-xl border border-gray-200 shadow-sm transition hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
-                >
-                  나중에
-                </button>
-                <button
-                  onClick={onClose}
-                  className="inline-flex justify-center items-center px-4 h-11 text-sm font-medium text-gray-600 bg-gray-100 rounded-xl border border-transparent transition hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
-                >
-                  닫기
-                </button>
-              </div>
+            {/* 유의사항 */}
+            <div className="mb-6 text-sm leading-relaxed text-gray-500">
+              <p className="mb-2">
+                • 쿠폰은 선착순으로 발급되며, 수량이 한정되어 있습니다.
+              </p>
+              <p className="mb-2">• 사용 기간: 2024년 7월 31일까지</p>
+              <p>• 중복 사용 불가, 타 쿠폰과 함께 사용 불가</p>
             </div>
-          </motion.div>
+
+            {/* 액션 버튼들 */}
+            <div className="flex gap-4 justify-center items-center h-14">
+              <button className="flex-1 px-6 h-full font-semibold text-sky-600 rounded-xl border-2 border-sky-500 transition-all duration-200 hover:bg-sky-50 hover:border-sky-600 hover:text-sky-700">
+                쿠폰 받기
+              </button>
+              <button className="flex-1 px-6 h-full font-medium text-gray-600 rounded-xl border border-gray-300 transition-all duration-200 hover:bg-gray-50 hover:border-gray-400 hover:text-gray-700">
+                나중에 받기
+              </button>
+            </div>
+          </div>
         </motion.div>
-      )}
+      </motion.div>
     </AnimatePresence>,
     document.body
   );
-}
+};
+
+export default SummerCouponModal;

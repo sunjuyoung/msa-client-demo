@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { API_SERVER_HOST } from "../../api/paymentApi";
+import { API_SERVER_HOST } from "../../api/rootApi";
 
 export function SuccessPage() {
   const navigate = useNavigate();

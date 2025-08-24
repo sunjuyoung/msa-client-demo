@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
@@ -20,6 +21,7 @@ import { useAddToCart } from "../../hooks/useAddToCart";
 export function PdpCtaBar({ product }) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const navigate = useNavigate();
   const { color, size, quantity, deliveryMethod } = usePdpState();
   const { mutate: addToCart, isLoading: isAddingToCart } = useAddToCart();
 
@@ -66,26 +68,25 @@ export function PdpCtaBar({ product }) {
       return;
     }
 
-    // 장바구니에 추가 후 바로구매 페이지로 이동
-    const lineItem = {
-      productId: product.id,
-      color,
-      size,
-      quantity,
-      deliveryMethod,
+    // 주문 페이지로 이동
+    const orderData = {
+      product: {
+        id: product.id,
+        name: product.name,
+        brand: product.brand || "TBH",
+        image: product.images?.[0] || product.image,
+        originalPrice: product.originalPrice || product.price,
+        price: product.price,
+        options: {
+          color: color,
+          size: size,
+        },
+      },
+      quantity: quantity,
+      shippingCost: 2500, // 기본 배송비
     };
 
-    addToCart(lineItem, {
-      onSuccess: () => {
-        // 바로구매 페이지로 이동
-        // navigate('/checkout', { state: { buyNow: true } });
-        console.log("바로구매 페이지로 이동");
-      },
-      onError: (error) => {
-        setErrorMessage(error.message || "바로구매에 실패했습니다.");
-        setShowError(true);
-      },
-    });
+    navigate("/order", { state: { orderData } });
   };
 
   // 위시리스트 토글

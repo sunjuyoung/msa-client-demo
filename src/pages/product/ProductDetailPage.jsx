@@ -92,7 +92,20 @@ export function ProductDetailPage() {
   } = useQuery({
     queryKey: ["product", productId],
     queryFn: () => fetchProductDetail(productId),
+    enabled: !!productId, // productId가 있을 때만 쿼리 실행
   });
+
+  if (!productId) {
+    return (
+      <Box sx={{ backgroundColor: "white", minHeight: "100vh" }}>
+        <Container maxWidth="xl" sx={{ py: 6 }}>
+          <Typography variant="h5" color="error" sx={{ textAlign: "center" }}>
+            상품 ID가 올바르지 않습니다.
+          </Typography>
+        </Container>
+      </Box>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -114,6 +127,18 @@ export function ProductDetailPage() {
         <Container maxWidth="xl" sx={{ py: 6 }}>
           <Typography variant="h5" color="error" sx={{ textAlign: "center" }}>
             상품 정보를 불러오는데 실패했습니다.
+          </Typography>
+        </Container>
+      </Box>
+    );
+  }
+
+  if (!product) {
+    return (
+      <Box sx={{ backgroundColor: "white", minHeight: "100vh" }}>
+        <Container maxWidth="xl" sx={{ py: 6 }}>
+          <Typography variant="h5" color="error" sx={{ textAlign: "center" }}>
+            상품 정보를 불러올 수 없습니다.
           </Typography>
         </Container>
       </Box>
