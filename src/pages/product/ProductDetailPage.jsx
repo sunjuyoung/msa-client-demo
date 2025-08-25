@@ -4,54 +4,35 @@ import { useQuery } from "@tanstack/react-query";
 import { PdpLayout } from "../../components/product/PdpLayout";
 import { PdpAccordion } from "../../components/product/PdpAccordion";
 
-// Mock API function - 실제로는 API에서 가져올 데이터
+// API 호출 함수
 const fetchProductDetail = async (productId) => {
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  const response = await fetch(
+    `http://localhost:8080/product-service/product/${productId}`
+  );
 
+  if (!response.ok) {
+    throw new Error("상품 정보를 불러오는데 실패했습니다.");
+  }
+
+  const apiData = await response.json();
+
+  // API 데이터와 더미 데이터를 병합
   return {
-    id: productId,
-    name: "프리미엄 코튼 베이직 티셔츠",
+    id: apiData.productId,
+    name: apiData.name,
+    description: apiData.description,
+    price: apiData.price,
+    category: apiData.category,
+    options: apiData.options.map((option) => ({
+      ...option,
+      // API에 없는 colorCode는 색상에 따라 매핑
+      colorCode: getColorCode(option.color),
+    })),
+    // 더미 데이터에만 존재하는 값들은 현재 값으로 고정
     brand: "TBH",
-    price: 89000,
     originalPrice: 129000,
     discount: 31,
     memberPrice: 80100,
-    description:
-      "고급스러운 코튼 소재로 제작된 베이직 티셔츠입니다. 일상복으로도, 데이트룩으로도 활용하기 좋은 아이템입니다.",
-    colors: [
-      {
-        name: "블랙",
-        code: "#000000",
-        stock: 15,
-        images: ["/images/products/girl-mb-data.jpg"],
-      },
-      {
-        name: "화이트",
-        code: "#FFFFFF",
-        stock: 8,
-        images: ["/images/products/mens-mb-data.jpg"],
-      },
-      {
-        name: "네이비",
-        code: "#000080",
-        stock: 12,
-        images: ["/images/products/girl-mb-data.jpg"],
-      },
-      {
-        name: "그레이",
-        code: "#808080",
-        stock: 0,
-        images: ["/images/products/mens-mb-data.jpg"],
-      },
-    ],
-    sizes: [
-      { name: "XS", stock: 5 },
-      { name: "S", stock: 12 },
-      { name: "M", stock: 18 },
-      { name: "L", stock: 15 },
-      { name: "XL", stock: 8 },
-      { name: "XXL", stock: 3 },
-    ],
     images: [
       "/images/products/girl-mb-data.jpg",
       "/images/products/mens-mb-data.jpg",
@@ -59,7 +40,6 @@ const fetchProductDetail = async (productId) => {
       "/images/products/mens-mb-data.jpg",
       "/images/products/girl-mb-data.jpg",
     ],
-    category: "의류",
     subCategory: "티셔츠",
     tags: ["베이직", "코튼", "캐주얼", "데일리"],
     isNew: true,
@@ -75,11 +55,31 @@ const fetchProductDetail = async (productId) => {
       "건조기 사용 금지",
     ],
     sizeGuide: {
-      chest: { XS: 88, S: 92, M: 96, L: 100, XL: 104, XXL: 108 },
-      length: { XS: 64, S: 66, M: 68, L: 70, XL: 72, XXL: 74 },
-      shoulder: { XS: 36, S: 38, M: 40, L: 42, XL: 44, XXL: 46 },
+      chest: { 90: 90, 95: 95, 100: 100, 105: 105 },
+      length: { 90: 64, 95: 66, 100: 68, 105: 70 },
+      shoulder: { 90: 36, 95: 38, 100: 40, 105: 42 },
     },
   };
+};
+
+// 색상 코드 매핑 함수
+const getColorCode = (color) => {
+  const colorMap = {
+    BLACK: "#000000",
+    WHITE: "#FFFFFF",
+    BLUE: "#000080",
+    NAVY: "#000080",
+    GRAY: "#808080",
+    RED: "#FF0000",
+    GREEN: "#008000",
+    YELLOW: "#FFFF00",
+    PINK: "#FFC0CB",
+    PURPLE: "#800080",
+    ORANGE: "#FFA500",
+    BROWN: "#A52A2A",
+  };
+
+  return colorMap[color] || "#CCCCCC"; // 기본값은 회색
 };
 
 export function ProductDetailPage() {

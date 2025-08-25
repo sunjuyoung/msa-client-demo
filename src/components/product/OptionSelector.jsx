@@ -3,7 +3,7 @@ import { Box, Typography, Button, Chip, Tooltip, Alert } from "@mui/material";
 import { usePdpState } from "../../hooks/usePdpState";
 
 export function OptionSelector({ product }) {
-  const { colors = [], sizes = [] } = product;
+  const { options = [] } = product;
   const { color, size, setColor, setSize } = usePdpState();
 
   const [colorError, setColorError] = useState(false);
@@ -30,23 +30,37 @@ export function OptionSelector({ product }) {
     setSizeError(false);
   };
 
-  const getColorStock = (colorName) => {
-    const colorData = colors.find((c) => c.name === colorName);
-    return colorData?.stock || 0;
+  const getColorStock = (colorValue) => {
+    const colorData = options.find((c) => c.color === colorValue);
+    if (!colorData) return 0;
+    
+    // 해당 색상의 모든 사이즈 재고 합계
+    return colorData.sizes.reduce((total, size) => total + size.stock, 0);
   };
 
   const getSizeStock = (sizeName) => {
-    const sizeData = sizes.find((s) => s.name === sizeName);
+    if (!color) return 0;
+    const colorData = options.find((c) => c.color === color);
+    if (!colorData) return 0;
+    
+    const sizeData = colorData.sizes.find((s) => s.size === sizeName);
     return sizeData?.stock || 0;
   };
 
-  const isColorOutOfStock = (colorName) => {
-    return getColorStock(colorName) === 0;
+  const isColorOutOfStock = (colorValue) => {
+    return getColorStock(colorValue) === 0;
   };
 
   const isSizeOutOfStock = (sizeName) => {
     if (!color) return false;
     return getSizeStock(sizeName) === 0;
+  };
+
+  // 선택된 색상의 사이즈 목록 가져오기
+  const getAvailableSizes = () => {
+    if (!color) return [];
+    const colorData = options.find((c) => c.color === color);
+    return colorData?.sizes || [];
   };
 
   return (
@@ -65,17 +79,17 @@ export function OptionSelector({ product }) {
         </Typography>
 
         <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-          {colors.map((colorOption) => {
-            const isOutOfStock = isColorOutOfStock(colorOption.name);
-            const isSelected = color === colorOption.name;
+          {options.map((colorOption) => {
+            const isOutOfStock = isColorOutOfStock(colorOption.color);
+            const isSelected = color === colorOption.color;
 
             return (
               <Tooltip
-                key={colorOption.name}
+                key={colorOption.color}
                 title={
                   isOutOfStock
                     ? "품절"
-                    : `${colorOption.name} (재고: ${colorOption.stock}개)`
+                    : `${colorOption.color} (재고: ${getColorStock(colorOption.color)}개)`
                 }
                 arrow
               >
@@ -84,17 +98,17 @@ export function OptionSelector({ product }) {
                     component="button"
                     type="button"
                     onClick={() =>
-                      !isOutOfStock && handleColorSelect(colorOption.name)
+                      !isOutOfStock && handleColorSelect(colorOption.color)
                     }
                     disabled={isOutOfStock}
                     aria-pressed={isSelected}
-                    aria-label={`${colorOption.name} 색상 선택`}
+                    aria-label={`${colorOption.color} 색상 선택`}
                     tabIndex={isOutOfStock ? -1 : 0}
                     sx={{
                       width: 40,
                       height: 40,
                       borderRadius: "50%",
-                      backgroundColor: colorOption.code,
+                      backgroundColor: colorOption.colorCode,
                       border: "2px solid",
                       borderColor: isSelected
                         ? "primary.main"
@@ -174,19 +188,19 @@ export function OptionSelector({ product }) {
         </Typography>
 
         <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-          {sizes.map((sizeOption) => {
-            const isOutOfStock = isSizeOutOfStock(sizeOption.name);
-            const isSelected = size === sizeOption.name;
+          {getAvailableSizes().map((sizeOption) => {
+            const isOutOfStock = isSizeOutOfStock(sizeOption.size);
+            const isSelected = size === sizeOption.size;
             const isDisabled = !color || isOutOfStock;
 
             return (
               <Button
-                key={sizeOption.name}
+                key={sizeOption.size}
                 variant={isSelected ? "contained" : "outlined"}
                 disabled={isDisabled}
-                onClick={() => handleSizeSelect(sizeOption.name)}
+                onClick={() => handleSizeSelect(sizeOption.size)}
                 aria-pressed={isSelected}
-                aria-label={`${sizeOption.name} 사이즈 선택`}
+                aria-label={`${sizeOption.size} 사이즈 선택`}
                 tabIndex={isDisabled ? -1 : 0}
                 sx={{
                   minWidth: 60,
@@ -206,7 +220,7 @@ export function OptionSelector({ product }) {
                   },
                 }}
               >
-                {sizeOption.name}
+                {sizeOption.size}
                 {isOutOfStock && (
                   <Box
                     component="span"
