@@ -4,10 +4,6 @@ import {
   Container,
   Typography,
   Button,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Checkbox,
   FormControlLabel,
   Slider,
@@ -19,11 +15,12 @@ import {
   FormGroup,
   ToggleButton,
   ToggleButtonGroup,
-  IconButton,
   Tooltip,
+  Skeleton,
 } from "@mui/material";
 import { ExpandMore } from "@mui/icons-material";
-import { SortAsc, SortDesc, X, Grid3X3, Grid, List } from "lucide-react";
+import { X, Grid3X3, Grid, List } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import ProductCard from "../../features/product/components/ProductCard";
 
 const ProductListPage = () => {
@@ -34,6 +31,45 @@ const ProductListPage = () => {
   const [selectedColors, setSelectedColors] = useState([]);
   const [priceRange, setPriceRange] = useState([0, 500000]);
   const [selectedBenefits, setSelectedBenefits] = useState([]);
+
+  // API 호출 함수
+  const fetchProductList = async () => {
+    const response = await fetch(
+      "http://localhost:8080/product-service/product"
+    );
+
+    if (!response.ok) {
+      throw new Error("상품 목록을 불러오는데 실패했습니다.");
+    }
+
+    const data = await response.json();
+
+    // API 데이터를 UI에 맞게 변환
+    return data.content.map((product) => ({
+      id: product.productId,
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      originalPrice: Math.round(product.price / 0.9), // 10% 할인율 적용
+      category: product.category,
+      size: product.size,
+      color: product.color,
+      image: "/images/products/girl-mb-data.jpg", // 기본 이미지
+      isNew: Math.random() > 0.7, // 30% 확률로 신상품
+      popularity: Math.floor(Math.random() * 30) + 70, // 70-100 랜덤값
+      discountRate: 10, // 10% 고정
+    }));
+  };
+
+  // React Query로 상품 목록 조회
+  const {
+    data: products = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["products"],
+    queryFn: fetchProductList,
+  });
 
   // 카테고리 데이터
   const categories = [
@@ -64,137 +100,9 @@ const ProductListPage = () => {
     { id: "red", name: "레드", count: 8, hex: "#FF0000" },
   ];
 
-  // 혜택 데이터
-  const benefits = [
-    { id: "sale", name: "세일", count: 12 },
-    { id: "new", name: "신상품", count: 8 },
-    { id: "best", name: "베스트", count: 15 },
-    { id: "free-shipping", name: "무료배송", count: 20 },
-  ];
+  // 혜택 데이터는 API 데이터에 해당 필드가 없어서 제거됨
 
   // 상품 데이터
-  const products = [
-    {
-      id: 1,
-      name: "여름 원피스",
-      description: "시원하고 트렌디한 여름 원피스",
-      image: "/images/products/girl-mb-data.jpg",
-      price: 89000,
-      originalPrice: 120000,
-      category: "여성 의류",
-      size: ["S", "M", "L"],
-      color: ["black", "white", "beige"],
-      benefits: ["new", "sale"],
-      isNew: true,
-      popularity: 95,
-      discountRate: 26,
-    },
-    {
-      id: 2,
-      name: "데님 팬츠",
-      description: "클래식한 데님 팬츠",
-      image: "/images/products/mens-mb-data.jpg",
-      price: 129000,
-      originalPrice: 129000,
-      category: "남성 의류",
-      size: ["M", "L", "XL"],
-      color: ["navy", "gray"],
-      benefits: ["best"],
-      isNew: false,
-      popularity: 88,
-      discountRate: 0,
-    },
-    {
-      id: 3,
-      name: "니트 스웨터",
-      description: "부드럽고 따뜻한 니트 스웨터",
-      image: "/images/products/girl-mb-data.jpg",
-      price: 159000,
-      originalPrice: 199000,
-      category: "여성 의류",
-      size: ["S", "M", "L", "XL"],
-      color: ["black", "gray", "beige"],
-      benefits: ["new", "free-shipping"],
-      isNew: true,
-      popularity: 92,
-      discountRate: 20,
-    },
-    {
-      id: 4,
-      name: "가죽 자켓",
-      description: "스타일리시한 가죽 자켓",
-      image: "/images/products/mens-mb-data.jpg",
-      price: 299000,
-      originalPrice: 399000,
-      category: "남성 의류",
-      size: ["M", "L", "XL"],
-      color: ["black", "navy"],
-      benefits: ["best", "free-shipping"],
-      isNew: false,
-      popularity: 85,
-      discountRate: 25,
-    },
-    {
-      id: 5,
-      name: "실크 블라우스",
-      description: "고급스러운 실크 블라우스",
-      image: "/images/products/girl-mb-data.jpg",
-      price: 189000,
-      originalPrice: 250000,
-      category: "여성 의류",
-      size: ["XS", "S", "M"],
-      color: ["white", "beige", "red"],
-      benefits: ["new", "sale"],
-      isNew: true,
-      popularity: 78,
-      discountRate: 24,
-    },
-    {
-      id: 6,
-      name: "스니커즈",
-      description: "편안하고 스타일리시한 스니커즈",
-      image: "/images/products/mens-mb-data.jpg",
-      price: 99000,
-      originalPrice: 129000,
-      category: "신발",
-      size: ["S", "M", "L"],
-      color: ["black", "white", "navy"],
-      benefits: ["best"],
-      isNew: false,
-      popularity: 82,
-      discountRate: 23,
-    },
-    {
-      id: 7,
-      name: "가죽 가방",
-      description: "고급스러운 가죽 가방",
-      image: "/images/products/girl-mb-data.jpg",
-      price: 249000,
-      originalPrice: 320000,
-      category: "가방",
-      size: ["ONE"],
-      color: ["black", "brown"],
-      benefits: ["best", "free-shipping"],
-      isNew: false,
-      popularity: 90,
-      discountRate: 22,
-    },
-    {
-      id: 8,
-      name: "실버 목걸이",
-      description: "우아한 실버 목걸이",
-      image: "/images/products/mens-mb-data.jpg",
-      price: 89000,
-      originalPrice: 120000,
-      category: "액세서리",
-      size: ["ONE"],
-      color: ["silver"],
-      benefits: ["sale"],
-      isNew: false,
-      popularity: 75,
-      discountRate: 26,
-    },
-  ];
 
   // 다중 선택 처리 함수들
   const handleMultiSelect = (selectedItems, setSelectedItems, itemId) => {
@@ -255,15 +163,10 @@ const ProductListPage = () => {
     const colorMatch =
       selectedColors.length === 0 ||
       product.color.some((color) => selectedColors.includes(color));
-    const benefitMatch =
-      selectedBenefits.length === 0 ||
-      product.benefits.some((benefit) => selectedBenefits.includes(benefit));
     const priceMatch =
       product.price >= priceRange[0] && product.price <= priceRange[1];
 
-    return (
-      categoryMatch && sizeMatch && colorMatch && benefitMatch && priceMatch
-    );
+    return categoryMatch && sizeMatch && colorMatch && priceMatch;
   });
 
   // 정렬된 상품 목록
@@ -607,50 +510,7 @@ const ProductListPage = () => {
                 </AccordionDetails>
               </Accordion>
 
-              <Divider />
-
-              {/* 혜택 */}
-              <Accordion disableGutters sx={{ boxShadow: "none" }}>
-                <AccordionSummary expandIcon={<ExpandMore />}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                    혜택
-                  </Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <FormGroup>
-                    {benefits.map((benefit) => (
-                      <FormControlLabel
-                        key={benefit.id}
-                        control={
-                          <Checkbox
-                            checked={selectedBenefits.includes(benefit.id)}
-                            onChange={() =>
-                              handleMultiSelect(
-                                selectedBenefits,
-                                setSelectedBenefits,
-                                benefit.id
-                              )
-                            }
-                          />
-                        }
-                        label={
-                          <Box
-                            sx={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              width: "100%",
-                            }}
-                          >
-                            <span>{benefit.name}</span>
-                            <Chip label={benefit.count} size="small" />
-                          </Box>
-                        }
-                        sx={{ width: "100%", mb: 1 }}
-                      />
-                    ))}
-                  </FormGroup>
-                </AccordionDetails>
-              </Accordion>
+              {/* 혜택 필터는 API 데이터에 해당 필드가 없어서 제거됨 */}
             </Box>
           </Box>
 
@@ -769,18 +629,77 @@ const ProductListPage = () => {
               </Box>
             </Box>
 
+            {/* 로딩 상태 */}
+            {isLoading && (
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: getGridSettings(),
+                  gap: 3,
+                }}
+              >
+                {[...Array(8)].map((_, index) => (
+                  <Box
+                    key={index}
+                    sx={{
+                      p: 2,
+                      border: "1px solid",
+                      borderColor: "divider",
+                      borderRadius: 2,
+                    }}
+                  >
+                    <Skeleton
+                      variant="rectangular"
+                      height={200}
+                      sx={{ mb: 2 }}
+                    />
+                    <Skeleton
+                      variant="text"
+                      height={24}
+                      width="80%"
+                      sx={{ mb: 1 }}
+                    />
+                    <Skeleton
+                      variant="text"
+                      height={20}
+                      width="60%"
+                      sx={{ mb: 1 }}
+                    />
+                    <Skeleton variant="text" height={20} width="40%" />
+                  </Box>
+                ))}
+              </Box>
+            )}
+
+            {/* 에러 상태 */}
+            {error && (
+              <Box sx={{ textAlign: "center", py: 8 }}>
+                <Typography variant="h6" color="error" sx={{ mb: 2 }}>
+                  상품 목록을 불러오는데 실패했습니다.
+                </Typography>
+                <Button
+                  variant="outlined"
+                  onClick={() => window.location.reload()}
+                >
+                  다시 시도
+                </Button>
+              </Box>
+            )}
+
             {/* 상품 그리드 - 뷰 밀도에 따른 동적 그리드 */}
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: getGridSettings(),
-                gap: viewDensity === "compact" ? 2 : 3,
-              }}
-            >
-              {sortedProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </Box>
+            {!isLoading && !error && (
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: getGridSettings(),
+                  gap: viewDensity === "compact" ? 2 : 3,
+                }}
+              >
+                {sortedProducts.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </Box>
+            )}
 
             {/* 상품이 없을 때 */}
             {sortedProducts.length === 0 && (
