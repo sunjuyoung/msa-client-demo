@@ -68,22 +68,34 @@ export function PdpCtaBar({ product }) {
       return;
     }
 
-    // 주문 페이지로 이동
+    // 주문 페이지로 이동 - 상품 정보를 완전하게 전송
     const orderData = {
       product: {
         id: product.id,
         name: product.name,
+        description: product.description,
         brand: product.brand || "TBH",
         image: product.images?.[0] || product.image,
         originalPrice: product.originalPrice || product.price,
         price: product.price,
+        category: product.category,
+        subCategory: product.subCategory,
         options: {
           color: color,
           size: size,
         },
+        tags: product.tags || [],
+        isNew: product.isNew,
+        isBest: product.isBest,
+        freeShipping: product.freeShipping,
+        freeReturn: product.freeReturn,
+        deliveryTime: product.deliveryTime,
+        returnPeriod: product.returnPeriod,
       },
       quantity: quantity,
-      shippingCost: 2500, // 기본 배송비
+      deliveryMethod: deliveryMethod,
+      shippingCost: deliveryMethod === "express" ? 5000 : 2500, // 배송 방법에 따른 배송비
+      totalPrice: product.price * quantity,
     };
 
     navigate("/order", { state: { orderData } });

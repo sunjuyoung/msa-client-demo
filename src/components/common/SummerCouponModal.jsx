@@ -1,10 +1,21 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { X, Gift, Clock, Star } from "lucide-react";
+import { X, Gift, Clock, Star, CheckCircle } from "lucide-react";
+import { useUser } from "../../shared/state/userStore";
+import { useCoupon } from "../../api/couponApi";
 
 const SummerCouponModal = ({ isOpen, onClose }) => {
   const dialogRef = useRef(null);
+  const user = useUser();
+  
+  // 상태 관리
+  const [isLoading, setIsLoading] = useState(false);
+  const [isIssued, setIsIssued] = useState(false);
+  const [error, setError] = useState(null);
+  
+  // 선착순 쿠폰 ID (고정값)
+  const COUPON_ID = 2;
 
   useEffect(() => {
     if (isOpen) {
@@ -35,6 +46,41 @@ const SummerCouponModal = ({ isOpen, onClose }) => {
 
     return () => document.removeEventListener("keydown", handleEscape);
   }, [isOpen, onClose]);
+
+  // 쿠폰 발급 핸들러
+  const handleIssueCoupon = async () => {
+    if (!user) {
+      setError("쿠폰을 받으려면 로그인이 필요합니다.");
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result = await useCoupon(COUPON_ID, user.id);
+      
+      if (result) {
+        setIsIssued(true);
+        // 3초 후 모달 닫기
+        setTimeout(() => {
+          onClose();
+        }, 3000);
+      }
+    } catch (err) {
+      setError(err.message || "쿠폰 발급에 실패했습니다.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 모달이 닫힐 때 상태 초기화
+  useEffect(() => {
+    if (!isOpen) {
+      setIsIssued(false);
+      setError(null);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -145,14 +191,65 @@ const SummerCouponModal = ({ isOpen, onClose }) => {
               <p>• 중복 사용 불가, 타 쿠폰과 함께 사용 불가</p>
             </div>
 
+            {/* 로그인 안내 */}
+            {!user && (
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-600 text-center">
+                  💡 쿠폰을 받으려면 로그인이 필요합니다.
+                </p>
+              </div>
+            )}
+
+            {/* 에러 메시지 */}
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-red-600 text-center">{error}</p>
+              </div>
+            )}
+
+            {/* 쿠폰 발급 성공 메시지 */}
+            {isIssued && (
+              <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg text-center">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <CheckCircle size={20} className="text-green-600" />
+                  <span className="text-green-800 font-semibold">쿠폰 발급 완료!</span>
+                </div>
+                <p className="text-sm text-green-700">
+                  여름 시즌 특별 쿠폰이 발급되었습니다.
+                </p>
+              </div>
+            )}
+
             {/* 액션 버튼들 */}
             <div className="flex gap-4 justify-center items-center h-14">
-              <button className="flex-1 px-6 h-full font-semibold text-sky-600 rounded-xl border-2 border-sky-500 transition-all duration-200 hover:bg-sky-50 hover:border-sky-600 hover:text-sky-700">
-                쿠폰 받기
-              </button>
-              <button className="flex-1 px-6 h-full font-medium text-gray-600 rounded-xl border border-gray-300 transition-all duration-200 hover:bg-gray-50 hover:border-gray-400 hover:text-gray-700">
-                나중에 받기
-              </button>
+              {!isIssued ? (
+                <>
+                  <button 
+                    onClick={handleIssueCoupon}
+                    disabled={isLoading || !user}
+                    className={`flex-1 px-6 h-full font-semibold rounded-xl border-2 transition-all duration-200 ${
+                      isLoading || !user
+                        ? 'bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed'
+                        : 'text-sky-600 border-sky-500 hover:bg-sky-50 hover:border-sky-600 hover:text-sky-700'
+                    }`}
+                  >
+                    {isLoading ? '발급 중...' : user ? '쿠폰 받기' : '로그인 필요'}
+                  </button>
+                  <button 
+                    onClick={onClose}
+                    className="flex-1 px-6 h-full font-medium text-gray-600 rounded-xl border border-gray-300 transition-all duration-200 hover:bg-gray-50 hover:border-gray-400 hover:text-gray-700"
+                  >
+                    나중에 받기
+                  </button>
+                </>
+              ) : (
+                <button 
+                  onClick={onClose}
+                  className="flex-1 px-6 h-full font-semibold text-green-600 rounded-xl border-2 border-green-500 transition-all duration-200 hover:bg-green-50 hover:border-green-600 hover:text-green-700"
+                >
+                  확인
+                </button>
+              )}
             </div>
           </div>
         </motion.div>

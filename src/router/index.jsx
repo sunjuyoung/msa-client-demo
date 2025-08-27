@@ -26,6 +26,9 @@ const OrderPage = createSafeLazyComponent(
 const CouponPopup = createSafeLazyComponent(() =>
   import("../pages/CouponPopup")
 );
+const UserExamplePage = createSafeLazyComponent(() =>
+  import("../pages/UserExamplePage")
+);
 
 const router = createBrowserRouter([
   {
@@ -38,6 +41,7 @@ const router = createBrowserRouter([
       { path: "product/:productId", element: <ProductDetailPage /> },
       { path: "order", element: <OrderPage /> },
       { path: "widget/checkout", element: <WidgetCheckout /> },
+      { path: "user-example", element: <UserExamplePage /> },
     ],
   },
   // 팝업 라우트(레이아웃 없이)

@@ -16,36 +16,69 @@ import {
   Grid,
   TextField,
   MenuItem,
+  Alert,
+  CircularProgress,
 } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowBack, Print } from "@mui/icons-material";
+import { useQuery } from "@tanstack/react-query";
+import { fetchUserCoupons } from "../../api/couponApi";
+import { useUser } from "../../shared/state/userStore";
 
 export function OrderPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const orderData = location.state?.orderData;
+  const user = useUser();
+
+  console.log(user.id);
+
+  // 사용자 쿠폰 조회
+  const {
+    data: userCoupons = [],
+    isLoading: isLoadingCoupons,
+    error: couponsError,
+  } = useQuery({
+    queryKey: ["userCoupons", user?.id],
+    queryFn: () => fetchUserCoupons(user?.id),
+    enabled: !!user?.id, // 사용자가 로그인되어 있을 때만 쿼리 실행
+    staleTime: 5 * 60 * 1000, // 5분간 캐시
+  });
 
   // 주문 데이터가 없으면 기본값 사용
   const defaultOrderData = {
     product: {
       id: 1,
       name: "프리미엄 코튼 베이직 티셔츠",
+      description:
+        "프리미엄 코튼 소재로 제작된 베이직한 디자인의 티셔츠입니다.",
       brand: "TBH",
       image: "/images/products/girl-mb-data.jpg",
       originalPrice: 129000,
       price: 89000,
+      category: "의류",
+      subCategory: "티셔츠",
       options: {
         color: "블랙",
         size: "M",
       },
+      tags: ["베이직", "코튼", "캐주얼"],
+      isNew: true,
+      isBest: false,
+      freeShipping: true,
+      freeReturn: true,
+      deliveryTime: "1-2일",
+      returnPeriod: "30일",
     },
     quantity: 1,
+    deliveryMethod: "standard",
     shippingCost: 2500,
+    totalPrice: 89000,
   };
 
   const order = orderData || defaultOrderData;
   const discount = order.product.originalPrice - order.product.price;
-  const totalAmount = order.product.price * order.quantity;
+  const totalAmount = order.totalPrice || order.product.price * order.quantity;
 
   // 주문자 정보 상태
   const [ordererInfo, setOrdererInfo] = useState({
@@ -67,6 +100,7 @@ export function OrderPage() {
   // 할인 혜택 상태
   const [selectedCoupon, setSelectedCoupon] = useState("");
   const [discountAmount, setDiscountAmount] = useState(0);
+  const [selectedCouponData, setSelectedCouponData] = useState(null);
 
   // 최종 결제 금액 계산 (할인 금액이 변경될 때마다 재계산)
   const finalTotal = useMemo(() => {
@@ -102,15 +136,31 @@ export function OrderPage() {
 
   // 쿠폰 선택
   const handleCouponChange = (event) => {
-    const coupon = event.target.value;
-    setSelectedCoupon(coupon);
+    const userCouponId = event.target.value;
+    setSelectedCoupon(userCouponId);
 
-    if (coupon) {
-      // 실제로는 쿠폰 정보를 가져와서 할인 금액 계산
-      const discount = Math.floor(Math.random() * 3000) + 500; // 임시 할인 금액
-      setDiscountAmount(discount);
+    if (userCouponId) {
+      // 선택된 쿠폰 데이터 찾기
+      const couponData = userCoupons.find(
+        (coupon) => coupon.userCouponId === parseInt(userCouponId)
+      );
+
+      if (couponData) {
+        setSelectedCouponData(couponData);
+
+        // 최소 주문 금액 확인
+        if (totalAmount >= couponData.minOrderAmount) {
+          setDiscountAmount(couponData.discountAmount);
+        } else {
+          setDiscountAmount(0);
+          alert(
+            `이 쿠폰은 ${couponData.minOrderAmount.toLocaleString()}원 이상 주문 시 사용 가능합니다.`
+          );
+        }
+      }
     } else {
       setDiscountAmount(0);
+      setSelectedCouponData(null);
     }
   };
 
@@ -191,6 +241,12 @@ export function OrderPage() {
                   >
                     배송비
                   </TableCell>
+                  <TableCell
+                    align="center"
+                    sx={{ fontWeight: 600, minWidth: 120 }}
+                  >
+                    배송방법
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -229,6 +285,83 @@ export function OrderPage() {
                           옵션: 컬러:{order.product.options.color} / 사이즈:
                           {order.product.options.size}
                         </Typography>
+
+                        {/* 상품 설명 */}
+                        {order.product.description && (
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{
+                              mt: 1,
+                              lineHeight: 1.4,
+                              display: "-webkit-box",
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: "vertical",
+                              overflow: "hidden",
+                            }}
+                          >
+                            {order.product.description}
+                          </Typography>
+                        )}
+
+                        {/* 태그들 */}
+                        {order.product.tags &&
+                          order.product.tags.length > 0 && (
+                            <Box
+                              sx={{
+                                display: "flex",
+                                gap: 0.5,
+                                mt: 1,
+                                flexWrap: "wrap",
+                              }}
+                            >
+                              {order.product.tags
+                                .slice(0, 3)
+                                .map((tag, index) => (
+                                  <Chip
+                                    key={index}
+                                    label={tag}
+                                    size="small"
+                                    variant="outlined"
+                                    sx={{
+                                      fontSize: "0.7rem",
+                                      height: 20,
+                                      "& .MuiChip-label": { px: 1 },
+                                    }}
+                                  />
+                                ))}
+                            </Box>
+                          )}
+
+                        {/* 상품 배지 */}
+                        <Box sx={{ display: "flex", gap: 0.5, mt: 1 }}>
+                          {order.product.isNew && (
+                            <Chip
+                              label="NEW"
+                              size="small"
+                              sx={{
+                                backgroundColor: "neutral.900",
+                                color: "white",
+                                fontSize: "0.7rem",
+                                height: 20,
+                                "& .MuiChip-label": { px: 1 },
+                              }}
+                            />
+                          )}
+                          {order.product.isBest && (
+                            <Chip
+                              label="BEST"
+                              size="small"
+                              sx={{
+                                backgroundColor: "warning.main",
+                                color: "white",
+                                fontSize: "0.7rem",
+                                height: 20,
+                                "& .MuiChip-label": { px: 1 },
+                              }}
+                            />
+                          )}
+                        </Box>
                       </Box>
                     </Box>
                   </TableCell>
@@ -319,6 +452,32 @@ export function OrderPage() {
                         ? "무료"
                         : `${order.shippingCost.toLocaleString()}원`}
                     </Typography>
+                  </TableCell>
+
+                  {/* 배송방법 */}
+                  <TableCell align="center">
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 0.5,
+                      }}
+                    >
+                      <Typography variant="body2" fontWeight={500}>
+                        {order.deliveryMethod === "express"
+                          ? "빠른배송"
+                          : "일반배송"}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        fontSize="0.75rem"
+                      >
+                        {order.deliveryMethod === "express"
+                          ? "당일~1일"
+                          : order.product.deliveryTime || "1-2일"}
+                      </Typography>
+                    </Box>
                   </TableCell>
                 </TableRow>
               </TableBody>
@@ -500,87 +659,158 @@ export function OrderPage() {
               </Typography>
               <Divider sx={{ mb: 2 }} />
 
-              <Grid container spacing={2}>
-                {/* 쿠폰 선택 */}
-                <Grid item xs={12}>
-                  <TextField
-                    select
-                    fullWidth
-                    label="쿠폰 선택"
-                    value={selectedCoupon}
-                    onChange={handleCouponChange}
-                    variant="outlined"
-                    size="medium"
-                    placeholder="쿠폰을 선택하세요"
-                    sx={{
-                      "& .MuiSelect-select": {
-                        fontSize: "1rem",
-                        padding: "10px 16px 1px 16px",
-                        minHeight: "48px",
-                        color: "text.primary",
-                        minWidth: "200px",
-                      },
-                      "& .MuiMenuItem-root": {
-                        fontSize: "1rem",
-                        padding: "10px 16px 5px 16px",
-                        minHeight: "48px",
-                        whiteSpace: "normal",
-                        lineHeight: 1.4,
-                      },
-                      "& .MuiInputLabel-root": {
-                        fontSize: "1rem",
-                        color: "text.secondary",
-                      },
-                      "& .MuiSelect-select.MuiSelect-select": {
-                        width: "100%",
-                      },
-                    }}
-                  >
-                    <MenuItem
-                      value=""
-                      sx={{
-                        color: "text.secondary",
-                        fontStyle: "italic",
-                        minWidth: "200px",
-                        width: "100%",
-                      }}
-                    >
-                      쿠폰을 선택하세요
-                    </MenuItem>
-                    <MenuItem value="welcome">
-                      신규 가입 쿠폰 (3,000원 할인)
-                    </MenuItem>
-                    <MenuItem value="birthday">
-                      생일 축하 쿠폰 (5,000원 할인)
-                    </MenuItem>
-                    <MenuItem value="seasonal">
-                      시즌 할인 쿠폰 (2,000원 할인)
-                    </MenuItem>
-                  </TextField>
-                </Grid>
-
-                {/* 할인 금액 표시 */}
-                {discountAmount > 0 && (
+              {!user ? (
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  쿠폰을 사용하려면 로그인이 필요합니다.
+                </Alert>
+              ) : (
+                <Grid container spacing={2}>
+                  {/* 쿠폰 선택 */}
                   <Grid item xs={12}>
-                    <Box
-                      sx={{
-                        p: 2,
-                        backgroundColor: "grey.50",
-                        borderRadius: 1,
-                        textAlign: "center",
-                      }}
-                    >
-                      <Typography
-                        variant="h6"
-                        color="error.main"
-                        fontWeight={600}
+                    {isLoadingCoupons ? (
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "center",
+                          py: 2,
+                        }}
                       >
-                        -{discountAmount.toLocaleString()}원
-                      </Typography>
-                    </Box>
+                        <CircularProgress size={24} />
+                        <Typography variant="body2" sx={{ ml: 1 }}>
+                          쿠폰을 불러오는 중...
+                        </Typography>
+                      </Box>
+                    ) : couponsError ? (
+                      <Alert severity="error" sx={{ mb: 2 }}>
+                        쿠폰 조회에 실패했습니다: {couponsError.message}
+                      </Alert>
+                    ) : userCoupons.length === 0 ? (
+                      <Alert severity="info" sx={{ mb: 2 }}>
+                        사용 가능한 쿠폰이 없습니다.
+                      </Alert>
+                    ) : (
+                      <TextField
+                        select
+                        fullWidth
+                        label="쿠폰 선택"
+                        value={selectedCoupon}
+                        onChange={handleCouponChange}
+                        variant="outlined"
+                        size="small"
+                        placeholder="쿠폰을 선택하세요"
+                        sx={{
+                          "& .MuiSelect-select": {
+                            fontSize: "1rem",
+                            padding: "10px 16px 1px 16px",
+                            minHeight: "48px",
+                            color: "text.primary",
+                            minWidth: "200px",
+                          },
+                          "& .MuiMenuItem-root": {
+                            fontSize: "1rem",
+                            padding: "10px 16px 5px 16px",
+                            minHeight: "48px",
+                            whiteSpace: "normal",
+                            lineHeight: 1.4,
+                          },
+                          "& .MuiInputLabel-root": {
+                            fontSize: "1rem",
+                            color: "text.secondary",
+                          },
+                          "& .MuiSelect-select.MuiSelect-select": {
+                            width: "100%",
+                          },
+                        }}
+                      >
+                        <MenuItem
+                          value=""
+                          sx={{
+                            color: "text.secondary",
+                            fontStyle: "italic",
+                            minWidth: "200px",
+                            width: "100%",
+                          }}
+                        >
+                          쿠폰을 선택하세요
+                        </MenuItem>
+                        {userCoupons.map((coupon) => (
+                          <MenuItem
+                            key={coupon.userCouponId}
+                            value={coupon.userCouponId}
+                            sx={{
+                              display: "flex",
+                              flexDirection: "column",
+                              alignItems: "flex-start",
+                              gap: 0.5,
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                width: "100%",
+                              }}
+                            >
+                              <Typography variant="body1" fontWeight={500}>
+                                {coupon.couponName}
+                              </Typography>
+                              <Typography
+                                variant="body2"
+                                color="error.main"
+                                fontWeight={600}
+                              >
+                                -{coupon.discountAmount.toLocaleString()}원
+                              </Typography>
+                            </Box>
+                            <Typography
+                              variant="body2"
+                              color="text.secondary"
+                              fontSize="0.8rem"
+                            >
+                              최소 주문 금액:{" "}
+                              {coupon.minOrderAmount.toLocaleString()}원
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              color="primary.main"
+                              fontSize="0.8rem"
+                            >
+                              코드: {coupon.code}
+                            </Typography>
+                          </MenuItem>
+                        ))}
+                      </TextField>
+                    )}
                   </Grid>
-                )}
-              </Grid>
+
+                  {/* 할인 금액 표시 */}
+                  {discountAmount > 0 && selectedCouponData && (
+                    <Grid item xs={12}>
+                      <Box
+                        sx={{
+                          p: 2,
+                          backgroundColor: "grey.50",
+                          borderRadius: 1,
+                          textAlign: "center",
+                        }}
+                      >
+                        <Typography
+                          variant="h6"
+                          color="error.main"
+                          fontWeight={600}
+                          gutterBottom
+                        >
+                          -{discountAmount.toLocaleString()}원 할인
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {selectedCouponData.couponName} (
+                          {selectedCouponData.code})
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  )}
+                </Grid>
+              )}
             </Paper>
           </Box>
 
@@ -591,6 +821,58 @@ export function OrderPage() {
                 결제 금액 정보
               </Typography>
               <Divider sx={{ mb: 2 }} />
+
+              {/* 배송 정보 */}
+              <Box sx={{ mb: 3 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    p: 2,
+                    backgroundColor: "primary.50",
+                    borderRadius: 1,
+                    mb: 1,
+                  }}
+                >
+                  <Typography
+                    variant="body1"
+                    color="primary.main"
+                    fontWeight={500}
+                  >
+                    배송 방법
+                  </Typography>
+                  <Typography variant="body1" fontWeight={500}>
+                    {order.deliveryMethod === "express"
+                      ? "빠른배송"
+                      : "일반배송"}
+                  </Typography>
+                </Box>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    p: 2,
+                    backgroundColor: "primary.50",
+                    borderRadius: 1,
+                    mb: 1,
+                  }}
+                >
+                  <Typography
+                    variant="body1"
+                    color="primary.main"
+                    fontWeight={500}
+                  >
+                    예상 배송 시간
+                  </Typography>
+                  <Typography variant="body1" fontWeight={500}>
+                    {order.deliveryMethod === "express"
+                      ? "당일~1일"
+                      : order.product.deliveryTime || "1-2일"}
+                  </Typography>
+                </Box>
+              </Box>
 
               {/* 상품 금액 정보 */}
               <Box sx={{ mb: 3 }}>

@@ -3,9 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { Box, Container, Typography, Button, Grid } from "@mui/material";
 import SummerCouponModal from "../components/common/SummerCouponModal";
 import ProductCard from "../features/product/components/ProductCard";
+import { useUser } from "../shared/state/userStore";
 
 const MainPage = () => {
   const navigate = useNavigate();
+  const user = useUser();
 
   // 이미지를 girl-mb-data.jpg로 고정
   const getFixedImage = () => {
@@ -26,8 +28,11 @@ const MainPage = () => {
   const [modalOpen, setModalOpen] = React.useState(false);
 
   React.useEffect(() => {
-    setModalOpen(true);
-  }, []);
+    // 사용자가 로그인되어 있을 때만 모달 자동 열기
+    if (user) {
+      setModalOpen(true);
+    }
+  }, [user]);
 
   return (
     <Box sx={{ backgroundColor: "white", minHeight: "100vh" }}>
