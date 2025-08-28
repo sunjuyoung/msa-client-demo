@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Box,
   Container,
@@ -22,6 +22,7 @@ import { ExpandMore } from "@mui/icons-material";
 import { X, Grid3X3, Grid, List } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import ProductCard from "../../features/product/components/ProductCard";
+import FetchingModal from "../../components/common/FetchingModal";
 
 const ProductListPage = () => {
   const [sortBy, setSortBy] = useState("newest");
@@ -33,10 +34,37 @@ const ProductListPage = () => {
   const [selectedBenefits, setSelectedBenefits] = useState([]);
 
   // API 호출 함수
-  const fetchProductList = async () => {
-    const response = await fetch(
-      "http://localhost:8080/product-service/product"
-    );
+  const fetchProductList = async (filters = {}) => {
+    // URL 파라미터 구성
+    const params = new URLSearchParams();
+
+    // 카테고리 필터
+    if (filters.category && filters.category.length > 0) {
+      filters.category.forEach((cat) => params.append("category", cat));
+    }
+
+    // 가격 범위 필터
+    if (filters.minPrice !== undefined) {
+      params.append("minPrice", filters.minPrice);
+    }
+    if (filters.maxPrice !== undefined) {
+      params.append("maxPrice", filters.maxPrice);
+    }
+
+    // 사이즈 필터 (배열)
+    if (filters.sizes && filters.sizes.length > 0) {
+      filters.sizes.forEach((size) => params.append("sizes", size));
+    }
+
+    // 색상 필터 (배열)
+    if (filters.colors && filters.colors.length > 0) {
+      filters.colors.forEach((color) => params.append("colors", color));
+    }
+
+    const url = `http://localhost:8080/product-service/product?${params.toString()}`;
+    console.log("API 요청 URL:", url);
+
+    const response = await fetch(url);
 
     if (!response.ok) {
       throw new Error("상품 목록을 불러오는데 실패했습니다.");
@@ -61,24 +89,65 @@ const ProductListPage = () => {
     }));
   };
 
+  // 카테고리 데이터
+  const categories = useMemo(
+    () => [
+      { id: 1, name: "PANTS" },
+      { id: 2, name: "TOP" },
+      { id: 3, name: "OUTER" },
+      { id: 4, name: "SHOES" },
+    ],
+    []
+  );
+
+  // 필터 상태를 기반으로 API 파라미터 구성
+  const filterParams = useMemo(() => {
+    const filters = {};
+
+    // 카테고리 필터 (name 값으로 변환)
+    if (selectedCategories.length > 0) {
+      filters.category = selectedCategories
+        .map((id) => categories.find((cat) => cat.id === id)?.name)
+        .filter(Boolean);
+    }
+
+    // 가격 범위 필터
+    if (priceRange[0] > 0) {
+      filters.minPrice = priceRange[0];
+    }
+    if (priceRange[1] < 500000) {
+      filters.maxPrice = priceRange[1];
+    }
+
+    // 사이즈 필터
+    if (selectedSizes.length > 0) {
+      filters.sizes = selectedSizes;
+    }
+
+    // 색상 필터
+    if (selectedColors.length > 0) {
+      filters.colors = selectedColors;
+    }
+
+    console.log("필터 파라미터:", filters);
+    return filters;
+  }, [
+    selectedCategories,
+    priceRange,
+    selectedSizes,
+    selectedColors,
+    categories,
+  ]);
+
   // React Query로 상품 목록 조회
   const {
     data: products = [],
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["products"],
-    queryFn: fetchProductList,
+    queryKey: ["products", filterParams],
+    queryFn: () => fetchProductList(filterParams),
   });
-
-  // 카테고리 데이터
-  const categories = [
-    { id: 1, name: "여성 의류" },
-    { id: 2, name: "남성 의류" },
-    { id: 3, name: "액세서리" },
-    { id: 4, name: "신발" },
-    { id: 5, name: "가방" },
-  ];
 
   // 사이즈 데이터
   const sizes = [
@@ -149,27 +218,8 @@ const ProductListPage = () => {
     return summary;
   };
 
-  // 필터링된 상품 목록
-  const filteredProducts = products.filter((product) => {
-    const categoryMatch =
-      selectedCategories.length === 0 ||
-      selectedCategories.includes(
-        categories.find((cat) => cat.name === product.category)?.id
-      );
-    const sizeMatch =
-      selectedSizes.length === 0 ||
-      product.size.some((size) => selectedSizes.includes(size));
-    const colorMatch =
-      selectedColors.length === 0 ||
-      product.color.some((color) => selectedColors.includes(color));
-    const priceMatch =
-      product.price >= priceRange[0] && product.price <= priceRange[1];
-
-    return categoryMatch && sizeMatch && colorMatch && priceMatch;
-  });
-
-  // 정렬된 상품 목록
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
+  // 정렬된 상품 목록 (서버에서 이미 필터링된 상품들을 정렬)
+  const sortedProducts = [...products].sort((a, b) => {
     switch (sortBy) {
       case "newest":
         return b.isNew - a.isNew;
@@ -223,6 +273,8 @@ const ProductListPage = () => {
 
   return (
     <Box sx={{ backgroundColor: "white", minHeight: "100vh" }}>
+      {/* 로딩 모달 */}
+      {isLoading && <FetchingModal />}
       {/* Header */}
       <Box
         sx={{

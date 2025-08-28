@@ -105,7 +105,7 @@ export function PdpPriceBox({ product }) {
             color="success.main"
             sx={{ fontWeight: 600 }}
           >
-            {formatKRW(originalPrice - price)} 절약
+            {formatKRW(10000)} 절약
           </Typography>
         )}
       </Box>

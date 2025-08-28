@@ -30,14 +30,14 @@ const fetchProductDetail = async (productId) => {
     })),
     // 더미 데이터에만 존재하는 값들은 현재 값으로 고정
     brand: "TBH",
-    originalPrice: 129000,
-    discount: 31,
-    memberPrice: 80100,
+    originalPrice: Math.round(apiData.price * 1.1), // price에서 10% 더한 값
+    discount: 10, // 10% 고정
+    memberPrice: apiData.price - 10000, // price에서 10000 뺀 값
     images: [
       "/images/products/girl-mb-data.jpg",
-      "/images/products/mens-mb-data.jpg",
       "/images/products/girl-mb-data.jpg",
-      "/images/products/mens-mb-data.jpg",
+      "/images/products/girl-mb-data.jpg",
+      "/images/products/girl-mb-data.jpg",
       "/images/products/girl-mb-data.jpg",
     ],
     subCategory: "티셔츠",
@@ -147,7 +147,10 @@ export function ProductDetailPage() {
 
   return (
     <Box sx={{ backgroundColor: "white", minHeight: "100vh" }}>
-      <Container maxWidth="xl" sx={{ py: 6 }}>
+      <Container
+        maxWidth={false}
+        sx={{ py: 6, px: { xs: 2, sm: 4, md: 6, lg: 8 } }}
+      >
         <PdpLayout product={product} />
         <PdpAccordion product={product} />
       </Container>

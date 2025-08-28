@@ -11,7 +11,7 @@ export const mockProducts = [
     isNew: true,
     discount: 40,
     colors: ["블랙", "화이트"],
-    category: "의류",
+    category: "PANTS",
     size: ["100", "105"],
   },
   {
@@ -24,7 +24,7 @@ export const mockProducts = [
     isNew: false,
     discount: 20,
     colors: ["네이비", "그레이", "블루"],
-    category: "신발",
+    category: "SHOES",
     size: ["95", "100", "105"],
   },
   {
@@ -37,7 +37,7 @@ export const mockProducts = [
     isNew: true,
     discount: 15,
     colors: ["베이지", "레드"],
-    category: "가방",
+    category: "OUTER",
     size: ["FREE"],
   },
   {
@@ -50,7 +50,7 @@ export const mockProducts = [
     isNew: false,
     discount: 30,
     colors: ["블랙", "그레이"],
-    category: "액세서리",
+    category: "TOP",
     size: ["90", "95"],
   },
   {
@@ -63,7 +63,7 @@ export const mockProducts = [
     isNew: true,
     discount: 29,
     colors: ["블루", "그린"],
-    category: "언더웨어",
+    category: "TOP",
     size: ["100", "105", "110"],
   },
   {
@@ -76,7 +76,7 @@ export const mockProducts = [
     isNew: false,
     discount: 20,
     colors: ["화이트", "네이비"],
-    category: "스포츠웨어",
+    category: "OUTER",
     size: ["105", "110"],
   },
   // ... 필요시 더 추가 ...

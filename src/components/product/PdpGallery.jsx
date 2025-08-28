@@ -113,7 +113,7 @@ export function PdpGallery({ product }) {
         sx={{
           position: "relative",
           width: "100%",
-          height: isMobile ? 400 : 600,
+          height: isMobile ? 400 : 500,
           cursor: isZoomed ? "zoom-out" : "zoom-in",
           overflow: "hidden",
           borderRadius: 2,

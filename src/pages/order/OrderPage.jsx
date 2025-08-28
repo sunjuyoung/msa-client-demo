@@ -57,7 +57,7 @@ export function OrderPage() {
       image: "/images/products/girl-mb-data.jpg",
       originalPrice: 129000,
       price: 89000,
-      category: "의류",
+      category: "TOP",
       subCategory: "티셔츠",
       options: {
         color: "블랙",
@@ -330,91 +330,19 @@ export function OrderPage() {
                         </Typography>
                         <Typography
                           variant="body1"
-                          sx={{ fontWeight: 500, mb: 1 }}
+                          sx={{ fontWeight: 600, mb: 1, fontSize: "0.91rem" }}
                         >
                           {order.product.name}
                         </Typography>
-                        <Typography variant="body2" color="text.secondary">
+
+                        <Typography
+                          variant="body2"
+                          color="text.primary"
+                          sx={{ fontSize: "0.78rem" }}
+                        >
                           옵션: 컬러:{order.product.options.color} / 사이즈:
                           {order.product.options.size}
                         </Typography>
-
-                        {/* 상품 설명 */}
-                        {order.product.description && (
-                          <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            sx={{
-                              mt: 1,
-                              lineHeight: 1.4,
-                              display: "-webkit-box",
-                              WebkitLineClamp: 2,
-                              WebkitBoxOrient: "vertical",
-                              overflow: "hidden",
-                            }}
-                          >
-                            {order.product.description}
-                          </Typography>
-                        )}
-
-                        {/* 태그들 */}
-                        {order.product.tags &&
-                          order.product.tags.length > 0 && (
-                            <Box
-                              sx={{
-                                display: "flex",
-                                gap: 0.5,
-                                mt: 1,
-                                flexWrap: "wrap",
-                              }}
-                            >
-                              {order.product.tags
-                                .slice(0, 3)
-                                .map((tag, index) => (
-                                  <Chip
-                                    key={index}
-                                    label={tag}
-                                    size="small"
-                                    variant="outlined"
-                                    sx={{
-                                      fontSize: "0.7rem",
-                                      height: 20,
-                                      "& .MuiChip-label": { px: 1 },
-                                    }}
-                                  />
-                                ))}
-                            </Box>
-                          )}
-
-                        {/* 상품 배지 */}
-                        <Box sx={{ display: "flex", gap: 0.5, mt: 1 }}>
-                          {order.product.isNew && (
-                            <Chip
-                              label="NEW"
-                              size="small"
-                              sx={{
-                                backgroundColor: "neutral.900",
-                                color: "white",
-                                fontSize: "0.7rem",
-                                height: 20,
-                                "& .MuiChip-label": { px: 1 },
-                              }}
-                            />
-                          )}
-                          {order.product.isBest && (
-                            <Chip
-                              label="BEST"
-                              size="small"
-                              sx={{
-                                backgroundColor: "warning.main",
-                                color: "white",
-                                fontSize: "0.7rem",
-                                height: 20,
-                                "& .MuiChip-label": { px: 1 },
-                              }}
-                            />
-                          )}
-                        </Box>
                       </Box>
                     </Box>
                   </TableCell>

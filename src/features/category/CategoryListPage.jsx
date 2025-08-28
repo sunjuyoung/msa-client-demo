@@ -56,7 +56,7 @@ const getRandomImage = () => {
 
 // 필터 옵션들
 const filterOptions = {
-  category: ["의류", "신발", "가방", "액세서리", "언더웨어", "스포츠웨어"],
+  category: ["PANTS", "TOP", "OUTER", "SHOES"],
   size: ["90", "95", "100", "105", "110"],
   color: [
     "블랙",

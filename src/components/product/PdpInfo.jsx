@@ -20,7 +20,15 @@ export function PdpInfo({ product }) {
   } = product;
 
   return (
-    <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+    <Box
+      sx={{
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        minWidth: "450px",
+        width: "100%",
+      }}
+    >
       {/* 상품 기본 정보 */}
       <Box sx={{ mb: 3 }}>
         {/* 브랜드 */}
