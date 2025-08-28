@@ -2,12 +2,15 @@ import React from "react";
 import { createBrowserRouter } from "react-router-dom";
 import AppLayout from "../components/layout/AppLayout.jsx";
 import { createSafeLazyComponent } from "../utils/lazyLoading.jsx";
+import { SuccessPage } from "../pages/toss/SuccessPage";
+import { FailPage } from "../pages/toss/FailPage";
 
 // Lazy loading을 위한 컴포넌트들
 const MainPage = createSafeLazyComponent(() => import("../pages/MainPage"));
 const WidgetCheckout = createSafeLazyComponent(() =>
   import("../pages/toss/WidgetCheckout")
 );
+
 const CategoryListPage = createSafeLazyComponent(
   () => import("../features/category/CategoryListPage"),
   "CategoryListPage"
@@ -44,7 +47,15 @@ const router = createBrowserRouter([
       { path: "user-example", element: <UserExamplePage /> },
     ],
   },
-  // 팝업 라우트(레이아웃 없이)
+  // 독립 라우트들(레이아웃 없이)
+  {
+    path: "/widget/success",
+    element: <SuccessPage />,
+  },
+  {
+    path: "/fail",
+    element: <FailPage />,
+  },
   {
     path: "/coupon-popup",
     element: <CouponPopup />,

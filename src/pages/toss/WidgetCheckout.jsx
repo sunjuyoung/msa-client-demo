@@ -58,7 +58,7 @@ const WidgetCheckout = () => {
     }
 
     fetchPaymentWidgets();
-  }, []);
+  }, [clientKey, customerKey]);
 
   useEffect(() => {
     async function renderPaymentWidgets() {
@@ -94,7 +94,7 @@ const WidgetCheckout = () => {
     }
 
     renderPaymentWidgets();
-  }, [widgets, amount]);
+  }, [widgets]);
 
   if (isFetching) {
     return <FetchingModal />;
@@ -142,6 +142,7 @@ const WidgetCheckout = () => {
                   });
                 }}
               />
+
               <span className="checkable__label-text">5,000원 쿠폰 적용</span>
             </label>
           </div>

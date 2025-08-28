@@ -73,31 +73,30 @@ const ProductListPage = () => {
 
   // 카테고리 데이터
   const categories = [
-    { id: 1, name: "여성 의류", count: 24 },
-    { id: 2, name: "남성 의류", count: 18 },
-    { id: 3, name: "액세서리", count: 12 },
-    { id: 4, name: "신발", count: 15 },
-    { id: 5, name: "가방", count: 8 },
+    { id: 1, name: "여성 의류" },
+    { id: 2, name: "남성 의류" },
+    { id: 3, name: "액세서리" },
+    { id: 4, name: "신발" },
+    { id: 5, name: "가방" },
   ];
 
   // 사이즈 데이터
   const sizes = [
-    { id: "XS", name: "XS", count: 15 },
-    { id: "S", name: "S", count: 28 },
-    { id: "M", name: "M", count: 32 },
-    { id: "L", name: "L", count: 25 },
-    { id: "XL", name: "XL", count: 18 },
-    { id: "XXL", name: "XXL", count: 12 },
+    { id: "90", name: "90" },
+    { id: "95", name: "95" },
+    { id: "100", name: "100" },
+    { id: "105", name: "105" },
+    { id: "110", name: "110" },
   ];
 
   // 색상 데이터
   const colors = [
-    { id: "black", name: "블랙", count: 22, hex: "#000000" },
-    { id: "white", name: "화이트", count: 19, hex: "#FFFFFF" },
-    { id: "navy", name: "네이비", count: 15, hex: "#000080" },
-    { id: "gray", name: "그레이", count: 18, hex: "#808080" },
-    { id: "beige", name: "베이지", count: 12, hex: "#F5F5DC" },
-    { id: "red", name: "레드", count: 8, hex: "#FF0000" },
+    { id: "black", name: "블랙", hex: "#000000" },
+    { id: "white", name: "화이트", hex: "#FFFFFF" },
+    { id: "navy", name: "네이비", hex: "#000080" },
+    { id: "gray", name: "그레이", hex: "#808080" },
+    { id: "beige", name: "베이지", hex: "#F5F5DC" },
+    { id: "red", name: "레드", hex: "#FF0000" },
   ];
 
   // 혜택 데이터는 API 데이터에 해당 필드가 없어서 제거됨
@@ -344,18 +343,7 @@ const ProductListPage = () => {
                             }
                           />
                         }
-                        label={
-                          <Box
-                            sx={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              width: "100%",
-                            }}
-                          >
-                            <span>{category.name}</span>
-                            <Chip label={category.count} size="small" />
-                          </Box>
-                        }
+                        label={category.name}
                         sx={{ width: "100%", mb: 1 }}
                       />
                     ))}
@@ -389,18 +377,7 @@ const ProductListPage = () => {
                             }
                           />
                         }
-                        label={
-                          <Box
-                            sx={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              width: "100%",
-                            }}
-                          >
-                            <span>{size.name}</span>
-                            <Chip label={size.count} size="small" />
-                          </Box>
-                        }
+                        label={size.name}
                         sx={{ width: "100%", mb: 1 }}
                       />
                     ))}
@@ -438,34 +415,24 @@ const ProductListPage = () => {
                           <Box
                             sx={{
                               display: "flex",
-                              justifyContent: "space-between",
-                              width: "100%",
                               alignItems: "center",
+                              gap: 1,
                             }}
                           >
                             <Box
                               sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 1,
+                                width: 20,
+                                height: 20,
+                                borderRadius: "50%",
+                                backgroundColor: color.hex,
+                                border: "1px solid",
+                                borderColor:
+                                  color.hex === "#FFFFFF"
+                                    ? "divider"
+                                    : "transparent",
                               }}
-                            >
-                              <Box
-                                sx={{
-                                  width: 20,
-                                  height: 20,
-                                  borderRadius: "50%",
-                                  backgroundColor: color.hex,
-                                  border: "1px solid",
-                                  borderColor:
-                                    color.hex === "#FFFFFF"
-                                      ? "divider"
-                                      : "transparent",
-                                }}
-                              />
-                              <span>{color.name}</span>
-                            </Box>
-                            <Chip label={color.count} size="small" />
+                            />
+                            <span>{color.name}</span>
                           </Box>
                         }
                         sx={{ width: "100%", mb: 1 }}

@@ -65,8 +65,8 @@ const AppHeader = () => {
 
   const categories = [
     { label: "NEW", value: 0 },
-    { label: "남성", value: 1 },
-    { label: "여성", value: 2 },
+    { label: "여성", value: 1 },
+    { label: "남성", value: 2 },
     { label: "ACC", value: 3 },
   ];
 

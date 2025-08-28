@@ -57,7 +57,7 @@ const getRandomImage = () => {
 // 필터 옵션들
 const filterOptions = {
   category: ["의류", "신발", "가방", "액세서리", "언더웨어", "스포츠웨어"],
-  size: ["XS", "S", "M", "L", "XL", "XXL", "FREE"],
+  size: ["90", "95", "100", "105", "110"],
   color: [
     "블랙",
     "화이트",
@@ -695,10 +695,10 @@ export function CategoryListPage() {
         </Box>
 
         {/* 필터/정렬/뷰 바 + 상품리스트를 동일 선상에 배치 */}
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 4 }}>
+        <Box sx={{ display: "flex", alignItems: "flex-start", gap: 4 }}>
           {/* 필터 패널 (데스크톱) */}
           {isMdUp && (
-            <Box sx={{ minWidth: 220, maxWidth: 280, flex: '0 0 220px' }}>
+            <Box sx={{ minWidth: 220, maxWidth: 280, flex: "0 0 220px" }}>
               <FilterPanel
                 filters={filters}
                 setFilters={setFilters}
@@ -711,7 +711,15 @@ export function CategoryListPage() {
           {/* 상품리스트 + 정렬/뷰바 */}
           <Box sx={{ flex: 1 }}>
             {/* 정렬/뷰바 */}
-            <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
+            <Box
+              sx={{
+                mb: 4,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexWrap: "wrap",
+              }}
+            >
               {/* 정렬 */}
               <ToggleButtonGroup
                 value={sort}
@@ -773,7 +781,9 @@ export function CategoryListPage() {
 
                 {/* 페이지네이션 */}
                 {data.totalPages > 1 && (
-                  <Box sx={{ display: "flex", justifyContent: "center", mt: 8 }}>
+                  <Box
+                    sx={{ display: "flex", justifyContent: "center", mt: 8 }}
+                  >
                     <Pagination
                       count={data.totalPages}
                       page={page}

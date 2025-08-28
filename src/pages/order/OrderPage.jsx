@@ -23,6 +23,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowBack, Print } from "@mui/icons-material";
 import { useQuery } from "@tanstack/react-query";
 import { fetchUserCoupons } from "../../api/couponApi";
+import { createOrder } from "../../api/orderApi";
 import { useUser } from "../../shared/state/userStore";
 
 export function OrderPage() {
@@ -60,7 +61,7 @@ export function OrderPage() {
       subCategory: "티셔츠",
       options: {
         color: "블랙",
-        size: "M",
+        size: "100",
       },
       tags: ["베이직", "코튼", "캐주얼"],
       isNew: true,
@@ -165,10 +166,62 @@ export function OrderPage() {
   };
 
   // 결제하기
-  const handlePayment = () => {
-    // 실제 결제 로직 구현
-    alert(`${finalTotal.toLocaleString()}원 결제를 진행합니다.`);
-    // navigate('/payment-success');
+  const handlePayment = async () => {
+    try {
+      // 색상 매핑 함수
+      const mapColorToApi = (color) => {
+        const colorMap = {
+          블랙: "BLACK",
+          화이트: "WHITE",
+          네이비: "NAVY",
+          그레이: "GRAY",
+          블루: "BLUE",
+          레드: "RED",
+          베이지: "BEIGE",
+        };
+        return colorMap[color] || "BLACK";
+      };
+
+      // 사이즈 매핑 함수
+      const mapSizeToApi = (size) => {
+        const sizeMap = {
+          XS: 85,
+          S: 90,
+          M: 95,
+          L: 100,
+          XL: 105,
+          XXL: 110,
+        };
+        return sizeMap[size] || 95;
+      };
+
+      // 주문 데이터 준비
+      const orderRequestData = {
+        productId: order.product.id,
+        productCount: order.quantity,
+        userId: user?.id || 1,
+        totalPrice: finalTotal,
+        color: mapColorToApi(order.product.options.color),
+        size: mapSizeToApi(order.product.options.size),
+      };
+
+      console.log("주문 요청 데이터:", orderRequestData);
+
+      // API 요청 보내기
+      const response = await createOrder(orderRequestData);
+
+      console.log("주문 응답 데이터:", response);
+
+      // 응답 데이터를 URL 파라미터로 전달하여 위젯 체크아웃 페이지로 이동
+      navigate(
+        `/widget/checkout?data=${encodeURIComponent(
+          JSON.stringify(response.data)
+        )}`
+      );
+    } catch (error) {
+      console.error("주문 생성 실패:", error);
+      alert("주문 생성에 실패했습니다. 다시 시도해주세요.");
+    }
   };
 
   if (!order) {
